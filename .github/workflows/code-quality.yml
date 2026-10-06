@@ -1,8 +1,7 @@
 name: Code Quality
 
+# Pushes to main run the same checks inside deployment.yml, gating the image.
 on:
-  push:
-    branches: [main]
   pull_request:
 
 concurrency:

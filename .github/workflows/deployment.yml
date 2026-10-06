@@ -3,7 +3,6 @@ name: deployment
 on:
   push:
     branches: [main]
-    tags: ['v*']
   workflow_dispatch:
 
 permissions:
@@ -14,7 +13,13 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  # Runs here rather than in a separate workflow so the image is built from
+  # exactly the commit that passed.
+  quality:
+    uses: ultimatelemon/shared-actions/.github/workflows/node-quality.yml@v1
+
   publish:
+    needs: [quality]
     uses: ultimatelemon/shared-actions/.github/workflows/docker-publish.yml@v1
     permissions:
       contents: read
@@ -25,9 +30,7 @@ jobs:
   deploy:
     needs: [publish]
     # Forks and self-hosters have no webhook; skip instead of failing.
-    if: >-
-      github.event_name == 'push' && github.ref == 'refs/heads/main' &&
-      vars.DEPLOY_ENABLED == 'true'
+    if: github.ref == 'refs/heads/main' && vars.DEPLOY_ENABLED == 'true'
     uses: ultimatelemon/shared-actions/.github/workflows/dokploy-deploy.yml@v1
     with:
       environment: production
