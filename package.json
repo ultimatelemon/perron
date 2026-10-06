@@ -32,7 +32,7 @@
     "zod": "^4.6.5"
   },
   "devDependencies": {
-    "@types/node": "^24.19.1",
+    "@types/node": "^26.6.4",
     "@ultimatelemon-eu/eslint-config": "^1.1.0",
     "@ultimatelemon-eu/prettier-config": "^1.0.1",
     "eslint": "^10.12.0",
