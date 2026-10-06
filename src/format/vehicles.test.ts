@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { fixture } from '../../test/helpers.ts';
 import {
   createVehicleProvider,
+  toSnapshot,
   type VehiclesResponse
 } from '../deelmobiliteit/client.ts';
 import {
@@ -13,7 +14,7 @@ import {
 } from './vehicles.ts';
 
 const feed = fixture<VehiclesResponse>('vehicles');
-const vehicles = feed.data?.vehicles ?? [];
+const vehicles = toSnapshot(feed);
 const UTRECHT = { lat: 52.08889, lon: 5.11028 };
 
 describe('distanceMeters and direction', () => {
@@ -99,6 +100,22 @@ describe('findNearby', () => {
   });
 });
 
+describe('toSnapshot', () => {
+  it('stores each operator and type once and skips unusable rows', () => {
+    const snapshot = toSnapshot({
+      data: {
+        vehicles: [
+          ...(feed.data?.vehicles ?? []),
+          { system_id: 'check', lat: Number.NaN, lon: 5 }
+        ]
+      }
+    });
+    expect(snapshot.count).toBe(10);
+    expect(snapshot.operators.filter((o) => o === 'check')).toHaveLength(1);
+    expect(snapshot.types).toEqual(['moped', 'bicycle', 'cargo_bicycle']);
+  });
+});
+
 describe('createVehicleProvider', () => {
   it('reuses the snapshot within its ttl and falls back to it on failure', async () => {
     let clock = 0;
@@ -111,13 +128,13 @@ describe('createVehicleProvider', () => {
           ? Promise.reject(new Error('down'))
           : Promise.resolve(feed);
       },
-      () => clock
+      { minTtlMs: 30_000, now: () => clock }
     );
 
     const [a, b] = await Promise.all([provider(), provider()]);
     expect(calls).toBe(1);
     expect(a).toBe(b);
-    expect(a.vehicles.length).toBe(vehicles.length);
+    expect(a.count).toBe(vehicles.count);
 
     clock = 10_000;
     await provider();

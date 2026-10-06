@@ -1,4 +1,8 @@
-import type { SharedVehicle } from '../deelmobiliteit/client.ts';
+import {
+  DISABLED,
+  RESERVED,
+  type VehicleSnapshot
+} from '../deelmobiliteit/client.ts';
 import { normalize } from '../resolve.ts';
 import { compact } from './util.ts';
 
@@ -44,66 +48,90 @@ export interface NearbyOptions {
   includeUnavailable: boolean;
 }
 
-function toItem(origin: Point, v: SharedVehicle, distance: number) {
+function toItem(
+  snapshot: VehicleSnapshot,
+  i: number,
+  origin: Point,
+  distance: number
+) {
+  const at = { lat: snapshot.lat[i]!, lon: snapshot.lon[i]! };
+  const flags = snapshot.flags[i]!;
   return compact({
-    operator: v.system_id,
-    type: v.form_factor,
-    propulsion: v.propulsion_type,
+    operator: snapshot.operators[snapshot.operator[i]!],
+    type: snapshot.types[snapshot.type[i]!],
+    propulsion: snapshot.propulsions[snapshot.propulsion[i]!],
     distanceM: Math.round(distance),
-    direction: direction(origin, v),
-    lat: Math.round(v.lat * 1e6) / 1e6,
-    lon: Math.round(v.lon * 1e6) / 1e6,
-    reserved: v.is_reserved,
-    disabled: v.is_disabled
+    direction: direction(origin, at),
+    lat: Math.round(at.lat * 1e6) / 1e6,
+    lon: Math.round(at.lon * 1e6) / 1e6,
+    reserved: (flags & RESERVED) !== 0,
+    disabled: (flags & DISABLED) !== 0
   });
 }
 
 export type NearbyVehicle = ReturnType<typeof toItem>;
 
+/** Indexes into a lookup table whose entries pass `keep`; undefined keeps them all. */
+function allowed(
+  table: string[],
+  wanted: string[] | undefined,
+  key = (s: string) => s
+) {
+  if (!wanted?.length) return undefined;
+  const keys = new Set(wanted.map(key));
+  return new Set(
+    table.flatMap((value, i) => (keys.has(key(value)) ? [i] : []))
+  );
+}
+
 export function findNearby(
-  vehicles: SharedVehicle[],
+  snapshot: VehicleSnapshot,
   origin: Point,
   options: NearbyOptions
 ) {
-  const operators = options.operators?.length
-    ? new Set(options.operators.map(operatorKey))
-    : undefined;
-  const formFactors = options.formFactors?.length
-    ? new Set(options.formFactors)
-    : undefined;
+  const operators = allowed(snapshot.operators, options.operators, operatorKey);
+  const types = allowed(snapshot.types, options.formFactors);
+  const unavailable = options.includeUnavailable ? 0 : RESERVED | DISABLED;
+  // A degree of latitude is ~111 km everywhere; this box skips the trigonometry for
+  // the tens of thousands of vehicles that are obviously too far away.
+  const dLat = options.radiusM / 111_000;
 
-  const matching: { v: SharedVehicle; d: number }[] = [];
-  for (const v of vehicles) {
-    if (operators && !operators.has(operatorKey(v.system_id))) continue;
-    if (formFactors && !formFactors.has(v.form_factor ?? 'other')) continue;
-    if (!options.includeUnavailable && (v.is_reserved || v.is_disabled)) {
-      continue;
-    }
-    matching.push({ v, d: distanceMeters(origin, v) });
+  const matching: { i: number; d: number }[] = [];
+  let closest: { i: number; d: number } | undefined;
+  for (let i = 0; i < snapshot.count; i++) {
+    if (operators && !operators.has(snapshot.operator[i]!)) continue;
+    if (types && !types.has(snapshot.type[i]!)) continue;
+    if (snapshot.flags[i]! & unavailable) continue;
+    const lat = snapshot.lat[i]!;
+    const near = Math.abs(lat - origin.lat) <= dLat;
+    // Out-of-range vehicles still count for the closest one, but only when nothing is in range.
+    if (!near && matching.length > 0) continue;
+    const d = distanceMeters(origin, { lat, lon: snapshot.lon[i]! });
+    if (d <= options.radiusM) matching.push({ i, d });
+    else if (!closest || d < closest.d) closest = { i, d };
   }
   matching.sort((a, b) => a.d - b.d);
 
-  const inRadius = matching.filter((m) => m.d <= options.radiusM);
   const byOperator: Record<string, number> = {};
-  for (const { v } of inRadius) {
-    byOperator[v.system_id] = (byOperator[v.system_id] ?? 0) + 1;
+  for (const { i } of matching) {
+    const name = snapshot.operators[snapshot.operator[i]!]!;
+    byOperator[name] = (byOperator[name] ?? 0) + 1;
   }
-  const first = matching[0];
   return {
-    total: inRadius.length,
+    total: matching.length,
     byOperator,
-    vehicles: inRadius
+    vehicles: matching
       .slice(0, options.limit)
-      .map((m) => toItem(origin, m.v, m.d)),
+      .map((m) => toItem(snapshot, m.i, origin, m.d)),
     // When nothing is in range, the closest one still tells how far to walk.
     closestOutsideRadius:
-      inRadius.length === 0 && first
-        ? toItem(origin, first.v, first.d)
+      matching.length === 0 && closest
+        ? toItem(snapshot, closest.i, origin, closest.d)
         : undefined
   };
 }
 
 /** The operators in the feed, so an unknown name can be answered with the real ones. */
-export function knownOperators(vehicles: SharedVehicle[]): string[] {
-  return [...new Set(vehicles.map((v) => v.system_id))].sort();
+export function knownOperators(snapshot: VehicleSnapshot): string[] {
+  return [...snapshot.operators].sort();
 }

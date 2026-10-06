@@ -116,7 +116,7 @@ export function registerSharedVehicles(server: McpServer, deps: Deps) {
 
         const snapshot = await deps.vehicles();
         if (input.operator?.length) {
-          const known = knownOperators(snapshot.vehicles);
+          const known = knownOperators(snapshot);
           const keys = new Set(known.map(operatorKey));
           const unknown = input.operator.filter(
             (o) => !keys.has(operatorKey(o))
@@ -128,7 +128,7 @@ export function registerSharedVehicles(server: McpServer, deps: Deps) {
           }
         }
 
-        const nearby = findNearby(snapshot.vehicles, origin, {
+        const nearby = findNearby(snapshot, origin, {
           operators: input.operator,
           formFactors: input.type,
           radiusM: input.radius,

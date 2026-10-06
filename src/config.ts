@@ -14,6 +14,7 @@ const schema = z.object({
     .optional()
     .transform((value) => value || undefined)
     .pipe(z.url().optional()),
+  VEHICLES_CACHE_SECONDS: z.coerce.number().int().min(15).max(600).default(60),
   LOG_LEVEL: z
     .enum(['fatal', 'error', 'warn', 'info', 'debug', 'trace', 'silent'])
     .default('info')

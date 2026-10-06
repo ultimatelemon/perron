@@ -40,8 +40,10 @@ disruptions are separate fields rather than buried in text.
 of Dashboard Deelmobiliteit (CROW), which lists every unrented shared vehicle in
 the Netherlands. It needs no key. Filter by operator as the feed names it
 (`check`, `felyx`, `gosharing`, …) and by type (`moped` is a deelscooter,
-`scooter_standing` an e-step). The nationwide snapshot is kept in memory for the
-feed's own `ttl` (30 seconds), not in Redis, since it is several megabytes.
+`scooter_standing` an e-step). The feed is one nationwide download of several
+megabytes, so perron fetches it only when the tool is called, at most once per
+`VEHICLES_CACHE_SECONDS`, and keeps it in memory as compact typed columns
+(about 20 bytes a vehicle) rather than in Redis.
 
 ## No authentication: put it behind something
 
@@ -63,15 +65,16 @@ token bucket, respects `Retry-After` on a 429, and caches responses (see below).
 
 ## Configuration
 
-| Variable     | Default   | Purpose                                                                                |
-| ------------ | --------- | -------------------------------------------------------------------------------------- |
-| `NS_API_KEY` | —         | Required. Subscription key for the Ns-App product.                                     |
-| `PORT`       | `3000`    | HTTP port.                                                                             |
-| `HOST`       | `0.0.0.0` | Interface to listen on. Use `127.0.0.1` to keep it local.                              |
-| `BASE_PATH`  | _(empty)_ | Prefix when a proxy forwards a sub-path unchanged, e.g. `/ns`.                         |
-| `REDIS_URL`  | _(empty)_ | Redis for the cache, e.g. `redis://redis:6379`. Without it: in memory.                 |
-| `ICON_URL`   | _(empty)_ | Icon shown by clients, as an https URL or `data:` URI. Empty: the built-in train icon. |
-| `LOG_LEVEL`  | `info`    | `fatal`, `error`, `warn`, `info`, `debug`, `trace` or `silent`.                        |
+| Variable                 | Default   | Purpose                                                                                |
+| ------------------------ | --------- | -------------------------------------------------------------------------------------- |
+| `NS_API_KEY`             | —         | Required. Subscription key for the Ns-App product.                                     |
+| `PORT`                   | `3000`    | HTTP port.                                                                             |
+| `HOST`                   | `0.0.0.0` | Interface to listen on. Use `127.0.0.1` to keep it local.                              |
+| `BASE_PATH`              | _(empty)_ | Prefix when a proxy forwards a sub-path unchanged, e.g. `/ns`.                         |
+| `REDIS_URL`              | _(empty)_ | Redis for the cache, e.g. `redis://redis:6379`. Without it: in memory.                 |
+| `ICON_URL`               | _(empty)_ | Icon shown by clients, as an https URL or `data:` URI. Empty: the built-in train icon. |
+| `VEHICLES_CACHE_SECONDS` | `60`      | How long one nationwide shared-vehicle download is reused (15–600).                    |
+| `LOG_LEVEL`              | `info`    | `fatal`, `error`, `warn`, `info`, `debug`, `trace` or `silent`.                        |
 
 Endpoints: `POST /mcp` (Streamable HTTP, stateless) and `GET /healthz`. With a
 `BASE_PATH` both are also served under that prefix.

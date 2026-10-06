@@ -55,7 +55,10 @@ async function main() {
     logger
   });
   const stations = createStationProvider(ns, cache);
-  const vehicles = createVehicleProvider(createVehiclesClient({ logger }));
+  const vehicles = createVehicleProvider(createVehiclesClient({ logger }), {
+    minTtlMs: config.VEHICLES_CACHE_SECONDS * 1000,
+    logger
+  });
   const deps: Deps = {
     ns,
     cache,
