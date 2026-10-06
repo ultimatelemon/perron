@@ -27,11 +27,14 @@ export class AmbiguousStation extends Error {
 
 export class UpstreamError extends Error {
   readonly status: number;
+  /** Which API failed, for the message the assistant sees. */
+  readonly service: string;
 
-  constructor(status: number, message: string) {
+  constructor(status: number, message: string, service = 'NS') {
     super(message);
     this.name = 'UpstreamError';
     this.status = status;
+    this.service = service;
   }
 }
 

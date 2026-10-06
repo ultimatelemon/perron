@@ -12,6 +12,7 @@ export interface Station {
   tracks: string[];
   accessible: boolean;
   travelAssistance: boolean;
+  location: { lat: number; lng: number } | undefined;
 }
 
 export interface Match {
@@ -114,7 +115,8 @@ function toStation(raw: NsStationV3): Station {
     country: raw.country,
     tracks: raw.tracks ?? [],
     accessible: raw.availableForAccessibleTravel ?? false,
-    travelAssistance: raw.hasTravelAssistance ?? false
+    travelAssistance: raw.hasTravelAssistance ?? false,
+    location: raw.location
   };
 }
 

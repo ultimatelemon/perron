@@ -1,3 +1,4 @@
+import type { VehicleSnapshot } from './deelmobiliteit/client.ts';
 import type { Cache } from './lib/cache.ts';
 import type { Logger } from './lib/logger.ts';
 import type { NsClient } from './ns/client.ts';
@@ -19,6 +20,8 @@ export interface Deps {
   ns: NsClient;
   cache: Cache;
   stations: () => Promise<StationIndex>;
+  /** Nationwide snapshot of unrented shared vehicles. */
+  vehicles: () => Promise<VehicleSnapshot>;
   now: () => Date;
   logger: Logger;
 }

@@ -20,6 +20,7 @@ const calls: [string, Record<string, unknown>][] = [
   ['arrivals', { station: 'Schiphol', limit: 5 }],
   ['disruptions', {}],
   ['station_facilities', { station: 'Utrecht' }],
+  ['shared_vehicles', { station: 'Rotterdam Centraal', operator: ['check'] }],
   ['plan_trip', { from: 'Ede', to: 'Zwolle' }]
 ];
 

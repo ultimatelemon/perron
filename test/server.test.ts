@@ -8,6 +8,10 @@ import {
   startMcpHttpServer,
   type McpHttpServer
 } from '@ultimatelemon-eu/mcp-http';
+import {
+  createVehicleProvider,
+  createVehiclesClient
+} from '../src/deelmobiliteit/client.ts';
 import { createNsClient } from '../src/ns/client.ts';
 import { createPerronServer } from '../src/server.ts';
 import { FIXTURE_NOW, fixture } from './helpers.ts';
@@ -25,7 +29,8 @@ const ROUTES: [RegExp, string][] = [
   [/\/virtual-train-api\/v1\/prognose\//, 'virtual-train-prognose'],
   [/\/places-api\/v2\/places$/, 'places'],
   [/\/places-api\/v2\/ovfiets$/, 'ovfiets'],
-  [/\/places-api\/v1\/stationfacility\/lifts$/, 'lifts']
+  [/\/places-api\/v1\/stationfacility\/lifts$/, 'lifts'],
+  [/^\/vehicles$/, 'vehicles']
 ];
 
 const requests: { url: URL; key: string | null }[] = [];
@@ -57,6 +62,12 @@ beforeAll(async () => {
     ns,
     cache,
     stations: createStationProvider(ns, cache),
+    vehicles: createVehicleProvider(
+      createVehiclesClient({
+        fetch: fakeFetch,
+        baseUrl: 'https://deelmobiliteit.test'
+      })
+    ),
     now: () => FIXTURE_NOW,
     logger: silentLogger
   };
@@ -105,7 +116,7 @@ describe('perron over Streamable HTTP', () => {
     expect(info?.icons?.[0]?.src).toMatch(/^data:image\/svg\+xml;base64,/);
   });
 
-  it('lists the ten tools with descriptions', async () => {
+  it('lists the eleven tools with descriptions', async () => {
     const { tools } = await client.listTools();
     expect(tools.map((t) => t.name).sort()).toEqual([
       'arrivals',
@@ -113,6 +124,7 @@ describe('perron over Streamable HTTP', () => {
       'disruptions',
       'plan_trip',
       'search_stations',
+      'shared_vehicles',
       'station_facilities',
       'train_composition',
       'train_journey',
@@ -168,9 +180,47 @@ describe('perron over Streamable HTTP', () => {
     expect(result.text).toContain('Run plan_trip again');
   });
 
-  it('sends the subscription key on every upstream call', () => {
-    expect(requests.length).toBeGreaterThan(0);
-    expect(requests.every((r) => r.key === 'test-key')).toBe(true);
+  it('finds Check scooters near a station', async () => {
+    const result = await call('shared_vehicles', {
+      station: 'Utrecht',
+      operator: ['Check'],
+      type: ['moped']
+    });
+    expect(result.isError).toBe(false);
+    expect(result.data).toMatchObject({
+      near: 'Utrecht Centraal',
+      total: 2,
+      byOperator: { check: 2 },
+      updated: '08:59'
+    });
+    expect(result.text).toMatch(/^2 Check moped vehicle\(s\) within 500 m/);
+  });
+
+  it('names the operators in the feed when the asked one is unknown', async () => {
+    const result = await call('shared_vehicles', {
+      lat: 52.09,
+      lon: 5.11,
+      operator: ['nope']
+    });
+    expect(result.isError).toBe(true);
+    expect(result.text).toContain('check, cykl, felyx');
+  });
+
+  it('asks for a place when shared_vehicles gets none', async () => {
+    const result = await call('shared_vehicles', { operator: ['check'] });
+    expect(result.isError).toBe(true);
+    expect(result.text).toContain('station');
+  });
+
+  it('sends the subscription key on every NS call and nowhere else', () => {
+    const ns = requests.filter((r) => r.url.host === 'gateway.apiportal.ns.nl');
+    expect(ns.length).toBeGreaterThan(0);
+    expect(ns.every((r) => r.key === 'test-key')).toBe(true);
+    expect(
+      requests
+        .filter((r) => r.url.host === 'deelmobiliteit.test')
+        .every((r) => r.key === null)
+    ).toBe(true);
     expect(requests.every((r) => !r.url.toString().includes('test-key'))).toBe(
       true
     );

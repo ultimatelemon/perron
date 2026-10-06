@@ -40,11 +40,14 @@ export function errorResult(error: unknown, logger: Logger): CallToolResult {
     );
   }
   if (error instanceof UpstreamError) {
-    logger.warn({ status: error.status, err: error.message }, 'upstream error');
+    logger.warn(
+      { service: error.service, status: error.status, err: error.message },
+      'upstream error'
+    );
     return fail(
       error.status === 404
-        ? 'NS has no data for this request.'
-        : `The NS API returned an error (${String(error.status)}). ${error.message}`
+        ? `${error.service} has no data for this request.`
+        : `The ${error.service} API returned an error (${String(error.status)}). ${error.message}`
     );
   }
   logger.error(

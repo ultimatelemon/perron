@@ -3,7 +3,8 @@
 An [MCP](https://modelcontextprotocol.io) server for Dutch Railways (NS) travel
 information. It gives Claude, or any other MCP client, the journey planner, live
 departure and arrival boards, disruptions and engineering works, fares, train
-composition and crowding, and station facilities.
+composition and crowding, station facilities, and the shared scooters and bikes
+waiting near a station.
 
 > **Not an official NS project.** perron uses the public
 > [NS API portal](https://apiportal.ns.nl) with your own API key. NS is not
@@ -23,6 +24,7 @@ composition and crowding, and station facilities.
 | `disruptions`        | Disruptions, engineering works and calamities, nationwide or per station, with details by id     |
 | `train_composition`  | Rolling stock, units, coaches, length, facilities, first-class seats, shortened or not, crowding |
 | `station_facilities` | OV-fiets availability, lift status, and facilities and shops with today's opening hours          |
+| `shared_vehicles`    | Available shared scooters, bikes and cars (Check, Felyx, GO Sharing, …) near a station or point  |
 
 Every tool accepts station names (`"Utrecht"`, `"Den Bosch"`), NS codes (`UT`)
 and UIC codes (`8400621`). When a name fits several stations, the tool returns
@@ -32,6 +34,14 @@ Responses are compact JSON plus a one-line-per-item text summary. Times are in
 Europe/Amsterdam, `HH:mm`, with the date only when it is not today. Delays are
 whole minutes, prices are euros, and track changes, cancellations and
 disruptions are separate fields rather than buried in text.
+
+`shared_vehicles` reads the open
+[Available Vehicles API](https://docs.dashboarddeelmobiliteit.nl/api_docs/available_vehicles/)
+of Dashboard Deelmobiliteit (CROW), which lists every unrented shared vehicle in
+the Netherlands. It needs no key. Filter by operator as the feed names it
+(`check`, `felyx`, `gosharing`, …) and by type (`moped` is a deelscooter,
+`scooter_standing` an e-step). The nationwide snapshot is kept in memory for the
+feed's own `ttl` (30 seconds), not in Redis, since it is several megabytes.
 
 ## No authentication: put it behind something
 

@@ -4,6 +4,7 @@ import { registerArrivals, registerDepartures } from './board.ts';
 import { registerDisruptions } from './disruptions.ts';
 import { registerPlanTrip } from './planTrip.ts';
 import { registerSearchStations } from './searchStations.ts';
+import { registerSharedVehicles } from './sharedVehicles.ts';
 import { registerStationFacilities } from './stationFacilities.ts';
 import { registerTrainComposition } from './trainComposition.ts';
 import { registerTrainJourney } from './trainJourney.ts';
@@ -21,4 +22,5 @@ export function registerTools(server: McpServer, deps: Deps): void {
   registerDisruptions(server, deps);
   registerTrainComposition(server, deps);
   registerStationFacilities(server, deps);
+  registerSharedVehicles(server, deps);
 }

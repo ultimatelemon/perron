@@ -4,6 +4,10 @@ import { loadConfig } from './config.ts';
 import { createStationProvider, type Deps } from './context.ts';
 import { createCache } from './lib/cache.ts';
 import { startMcpHttpServer } from '@ultimatelemon-eu/mcp-http';
+import {
+  createVehicleProvider,
+  createVehiclesClient
+} from './deelmobiliteit/client.ts';
 import { createLogger } from './log.ts';
 import { createNsClient } from './ns/client.ts';
 import { registerTools } from './tools/index.ts';
@@ -19,7 +23,7 @@ const ICON = `data:image/svg+xml;base64,${readFileSync(
 ).toString('base64')}`;
 
 const INSTRUCTIONS =
-  'Dutch Railways (NS) travel information. Tools accept station names, NS codes or UIC codes. Times are Europe/Amsterdam, HH:mm, with the date only when it is not today. Prices are in euros. This is not an official NS service.';
+  'Dutch Railways (NS) travel information. Tools accept station names, NS codes or UIC codes. Times are Europe/Amsterdam, HH:mm, with the date only when it is not today. Prices are in euros. shared_vehicles finds shared scooters, bikes and cars (Check, Felyx, GO Sharing, …) near a station from the open Dashboard Deelmobiliteit feed. This is not an official NS service.';
 
 export function createPerronServer(deps: Deps, iconUrl?: string): McpServer {
   const server = new McpServer(
@@ -51,7 +55,15 @@ async function main() {
     logger
   });
   const stations = createStationProvider(ns, cache);
-  const deps: Deps = { ns, cache, stations, now: () => new Date(), logger };
+  const vehicles = createVehicleProvider(createVehiclesClient({ logger }));
+  const deps: Deps = {
+    ns,
+    cache,
+    stations,
+    vehicles,
+    now: () => new Date(),
+    logger
+  };
 
   // Warm the station list; a failure is retried on the first tool call.
   stations()
