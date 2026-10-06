@@ -29,8 +29,7 @@ jobs:
 
   deploy:
     needs: [publish]
-    # Forks and self-hosters have no webhook; skip instead of failing.
-    if: github.ref == 'refs/heads/main' && vars.DEPLOY_ENABLED == 'true'
+    if: github.ref == 'refs/heads/main'
     uses: ultimatelemon/shared-actions/.github/workflows/dokploy-deploy.yml@v1
     with:
       environment: production
