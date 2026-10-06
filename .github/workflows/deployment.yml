@@ -1,26 +1,20 @@
-name: CI
+name: deployment
 
 on:
   push:
     branches: [main]
     tags: ['v*']
-  pull_request:
   workflow_dispatch:
 
 permissions:
   contents: read
 
 concurrency:
-  group: ci-${{ github.ref }}
+  group: deployment-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
-  quality:
-    uses: ultimatelemon/shared-actions/.github/workflows/node-quality.yml@v1
-
   publish:
-    needs: [quality]
-    if: github.event_name != 'pull_request'
     uses: ultimatelemon/shared-actions/.github/workflows/docker-publish.yml@v1
     permissions:
       contents: read
