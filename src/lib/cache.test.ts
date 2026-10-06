@@ -23,7 +23,7 @@ describe('memoryStore', () => {
 
 describe('createCache', () => {
   it('runs a loader once for concurrent misses', async () => {
-    const cache = await createCache();
+    const cache = createCache();
     const load = vi.fn(async () => {
       await new Promise((r) => setTimeout(r, 5));
       return { v: 1 };
@@ -40,12 +40,25 @@ describe('createCache', () => {
   });
 
   it('does not cache a failed load', async () => {
-    const cache = await createCache();
+    const cache = createCache();
     const load = vi
       .fn()
       .mockRejectedValueOnce(new Error('down'))
       .mockResolvedValueOnce(2);
     await expect(cache.wrap('k', 1000, load)).rejects.toThrow('down');
     await expect(cache.wrap('k', 1000, load)).resolves.toBe(2);
+  });
+});
+
+describe('redisStore', () => {
+  it('does not block or fail when Redis is unreachable', async () => {
+    const started = Date.now();
+    const cache = createCache({ redisUrl: 'redis://127.0.0.1:1' });
+    expect(Date.now() - started).toBeLessThan(100);
+    await expect(cache.wrap('k', 1000, () => Promise.resolve(7))).resolves.toBe(
+      7
+    );
+    await expect(cache.get('k')).resolves.toBeUndefined();
+    await cache.close();
   });
 });

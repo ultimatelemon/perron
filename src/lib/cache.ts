@@ -45,23 +45,48 @@ export function memoryStore(maxEntries = 1000, now = Date.now): Store {
   };
 }
 
-async function redisStore(url: string, logger: Logger): Promise<Store> {
-  const client = createClient({ url });
-  client.on('error', (error: unknown) => {
-    logger.warn({ err: String(error) }, 'redis error');
+const ERROR_LOG_INTERVAL_MS = 60_000;
+
+/*
+ * Connects in the background and never blocks startup: until Redis is ready,
+ * reads miss and writes are skipped, so the cache falls back to the upstream.
+ */
+export function redisStore(url: string, logger: Logger): Store {
+  // Without disableOfflineQueue, commands wait for a reconnect that may never come.
+  const client = createClient({
+    url,
+    disableOfflineQueue: true,
+    socket: { connectTimeout: 5000 }
   });
-  await client.connect();
+  let lastErrorLog = 0;
+  client.on('error', (error: unknown) => {
+    const now = Date.now();
+    if (now - lastErrorLog < ERROR_LOG_INTERVAL_MS) return;
+    lastErrorLog = now;
+    logger.warn({ err: String(error) }, 'redis unavailable, using upstream');
+  });
+  client.on('ready', () => {
+    lastErrorLog = 0;
+    logger.info({}, 'redis connected');
+  });
+  client.connect().catch(() => {
+    // Reported through the error event; the client keeps reconnecting.
+  });
+
   return {
     async get(key) {
+      if (!client.isReady) return undefined;
       return (await client.get(key)) ?? undefined;
     },
     async set(key, value, ttlMs) {
+      if (!client.isReady) return;
       await client.set(key, value, {
         expiration: { type: 'PX', value: ttlMs }
       });
     },
     async close() {
-      await client.close();
+      if (client.isOpen) await client.close();
+      else client.destroy();
     }
   };
 }
@@ -72,10 +97,10 @@ export interface CacheOptions {
   logger?: Logger;
 }
 
-export async function createCache(options: CacheOptions = {}): Promise<Cache> {
+export function createCache(options: CacheOptions = {}): Cache {
   const { prefix = '', logger = silentLogger } = options;
   const store = options.redisUrl
-    ? await redisStore(options.redisUrl, logger)
+    ? redisStore(options.redisUrl, logger)
     : memoryStore();
   const inflight = new Map<string, Promise<unknown>>();
 

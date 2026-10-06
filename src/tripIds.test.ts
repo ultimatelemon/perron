@@ -12,13 +12,13 @@ describe('trip ids', () => {
   });
 
   it('round-trip through the cache', async () => {
-    const cache = await createCache();
+    const cache = createCache();
     const id = await rememberTrip(cache, 'ctx-1');
     await expect(recallTrip(cache, id)).resolves.toBe('ctx-1');
   });
 
   it('tell the assistant to plan again when unknown', async () => {
-    const cache = await createCache();
+    const cache = createCache();
     await expect(recallTrip(cache, 'nope')).rejects.toBeInstanceOf(NotFound);
   });
 });

@@ -29,7 +29,7 @@ async function main() {
   const config = loadConfig();
   const logger = createLogger(config.LOG_LEVEL);
   const ns = createNsClient({ apiKey: config.NS_API_KEY, logger });
-  const cache = await createCache({
+  const cache = createCache({
     redisUrl: config.REDIS_URL,
     prefix: 'perron:',
     logger

@@ -49,7 +49,7 @@ let client: Client;
 
 beforeAll(async () => {
   const ns = createNsClient({ apiKey: 'test-key', fetch: fakeFetch });
-  const cache = await createCache();
+  const cache = createCache();
   const deps: Deps = {
     ns,
     cache,
