@@ -3,7 +3,7 @@ import {
   HttpError,
   type FetchClient,
   type QueryValue
-} from '../lib/fetch-client.ts';
+} from '@ultimatelemon-eu/fetch-client';
 import type { Logger } from '../lib/logger.ts';
 import { UpstreamError } from '../errors.ts';
 

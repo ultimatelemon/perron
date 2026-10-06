@@ -147,9 +147,12 @@ real API:
   successor, the timetable API, is not part of the Ns-App product. Both calls
   live in one function in `src/ns/reisinformatie.ts`.
 
-`src/lib/` holds the pieces that know nothing about NS: a rate-limited fetch
-client, a cache with Redis or in-memory storage, and the Streamable HTTP
-bootstrap.
+The parts that know nothing about NS live in their own packages:
+[`@ultimatelemon-eu/fetch-client`](https://www.npmjs.com/package/@ultimatelemon-eu/fetch-client)
+(rate limiting, Retry-After, retries) and
+[`@ultimatelemon-eu/mcp-http`](https://www.npmjs.com/package/@ultimatelemon-eu/mcp-http)
+(the Streamable HTTP server). `src/lib/` keeps the cache, with Redis or
+in-memory storage.
 
 ## License
 

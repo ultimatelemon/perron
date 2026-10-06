@@ -4,7 +4,10 @@ import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { createStationProvider, type Deps } from '../src/context.ts';
 import { createCache } from '../src/lib/cache.ts';
 import { silentLogger } from '../src/lib/logger.ts';
-import { startMcpHttpServer, type McpHttpServer } from '../src/lib/mcp-http.ts';
+import {
+  startMcpHttpServer,
+  type McpHttpServer
+} from '@ultimatelemon-eu/mcp-http';
 import { createNsClient } from '../src/ns/client.ts';
 import { createPerronServer } from '../src/server.ts';
 import { FIXTURE_NOW, fixture } from './helpers.ts';

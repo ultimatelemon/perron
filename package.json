@@ -27,6 +27,8 @@
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.32.1",
     "@ultimatelemon-eu/datetime": "^1.0.0",
+    "@ultimatelemon-eu/fetch-client": "^1.0.0",
+    "@ultimatelemon-eu/mcp-http": "^1.0.0",
     "pino": "^10.4.0",
     "redis": "^6.3.0",
     "zod": "^4.6.5"

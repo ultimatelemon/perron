@@ -1,4 +1,4 @@
-export { RateLimitedError as RateLimited } from './lib/fetch-client.ts';
+export { RateLimitedError as RateLimited } from '@ultimatelemon-eu/fetch-client';
 
 export interface StationCandidate {
   name: string;

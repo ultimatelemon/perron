@@ -3,7 +3,7 @@ import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { loadConfig } from './config.ts';
 import { createStationProvider, type Deps } from './context.ts';
 import { createCache } from './lib/cache.ts';
-import { startMcpHttpServer } from './lib/mcp-http.ts';
+import { startMcpHttpServer } from '@ultimatelemon-eu/mcp-http';
 import { createLogger } from './log.ts';
 import { createNsClient } from './ns/client.ts';
 import { registerTools } from './tools/index.ts';
