@@ -53,14 +53,15 @@ token bucket, respects `Retry-After` on a 429, and caches responses (see below).
 
 ## Configuration
 
-| Variable     | Default   | Purpose                                                                |
-| ------------ | --------- | ---------------------------------------------------------------------- |
-| `NS_API_KEY` | —         | Required. Subscription key for the Ns-App product.                     |
-| `PORT`       | `3000`    | HTTP port.                                                             |
-| `HOST`       | `0.0.0.0` | Interface to listen on. Use `127.0.0.1` to keep it local.              |
-| `BASE_PATH`  | _(empty)_ | Prefix when a proxy forwards a sub-path unchanged, e.g. `/ns`.         |
-| `REDIS_URL`  | _(empty)_ | Redis for the cache, e.g. `redis://redis:6379`. Without it: in memory. |
-| `LOG_LEVEL`  | `info`    | `fatal`, `error`, `warn`, `info`, `debug`, `trace` or `silent`.        |
+| Variable     | Default   | Purpose                                                                                |
+| ------------ | --------- | -------------------------------------------------------------------------------------- |
+| `NS_API_KEY` | —         | Required. Subscription key for the Ns-App product.                                     |
+| `PORT`       | `3000`    | HTTP port.                                                                             |
+| `HOST`       | `0.0.0.0` | Interface to listen on. Use `127.0.0.1` to keep it local.                              |
+| `BASE_PATH`  | _(empty)_ | Prefix when a proxy forwards a sub-path unchanged, e.g. `/ns`.                         |
+| `REDIS_URL`  | _(empty)_ | Redis for the cache, e.g. `redis://redis:6379`. Without it: in memory.                 |
+| `ICON_URL`   | _(empty)_ | Icon shown by clients, as an https URL or `data:` URI. Empty: the built-in train icon. |
+| `LOG_LEVEL`  | `info`    | `fatal`, `error`, `warn`, `info`, `debug`, `trace` or `silent`.                        |
 
 Endpoints: `POST /mcp` (Streamable HTTP, stateless) and `GET /healthz`. With a
 `BASE_PATH` both are also served under that prefix.

@@ -13,6 +13,7 @@ ENV NODE_ENV=production \
 COPY --from=build --chown=node:node /build/package.json ./
 COPY --from=build --chown=node:node /build/node_modules ./node_modules
 COPY --from=build --chown=node:node /build/dist ./dist
+COPY --chown=node:node assets ./assets
 USER node
 EXPOSE 3000
 HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \

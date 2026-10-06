@@ -13,12 +13,28 @@ const { version } = JSON.parse(
   readFileSync(new URL('../package.json', import.meta.url), 'utf8')
 ) as { version: string };
 
+// Inlined so the icon needs no route or hosting; clients read it from serverInfo.
+const ICON = `data:image/svg+xml;base64,${readFileSync(
+  new URL('../assets/icon.svg', import.meta.url)
+).toString('base64')}`;
+
 const INSTRUCTIONS =
   'Dutch Railways (NS) travel information. Tools accept station names, NS codes or UIC codes. Times are Europe/Amsterdam, HH:mm, with the date only when it is not today. Prices are in euros. This is not an official NS service.';
 
-export function createPerronServer(deps: Deps): McpServer {
+export function createPerronServer(deps: Deps, iconUrl?: string): McpServer {
   const server = new McpServer(
-    { name: 'perron', version },
+    {
+      name: 'perron',
+      title: 'Perron',
+      version,
+      description: 'Dutch Railways (NS) travel information',
+      websiteUrl: 'https://github.com/ultimatelemon/perron',
+      icons: [
+        iconUrl
+          ? { src: iconUrl }
+          : { src: ICON, mimeType: 'image/svg+xml', sizes: ['any'] }
+      ]
+    },
     { instructions: INSTRUCTIONS }
   );
   registerTools(server, deps);
@@ -47,7 +63,7 @@ async function main() {
     });
 
   const http = await startMcpHttpServer({
-    createMcpServer: () => createPerronServer(deps),
+    createMcpServer: () => createPerronServer(deps, config.ICON_URL),
     port: config.PORT,
     host: config.HOST,
     basePath: config.BASE_PATH,

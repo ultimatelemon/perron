@@ -99,6 +99,12 @@ describe('perron over Streamable HTTP', () => {
     expect(res.status).toBe(405);
   });
 
+  it('announces a title and an inline SVG icon', () => {
+    const info = client.getServerVersion();
+    expect(info).toMatchObject({ name: 'perron', title: 'Perron' });
+    expect(info?.icons?.[0]?.src).toMatch(/^data:image\/svg\+xml;base64,/);
+  });
+
   it('lists the ten tools with descriptions', async () => {
     const { tools } = await client.listTools();
     expect(tools.map((t) => t.name).sort()).toEqual([

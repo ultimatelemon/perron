@@ -9,6 +9,11 @@ const schema = z.object({
     .string()
     .optional()
     .transform((value) => value || undefined),
+  ICON_URL: z
+    .string()
+    .optional()
+    .transform((value) => value || undefined)
+    .pipe(z.url().optional()),
   LOG_LEVEL: z
     .enum(['fatal', 'error', 'warn', 'info', 'debug', 'trace', 'silent'])
     .default('info')
