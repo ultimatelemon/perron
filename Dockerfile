@@ -1,4 +1,4 @@
-FROM node:24.20.0-alpine3.24 AS build
+FROM node:26.10.0-alpine3.24 AS build
 WORKDIR /build
 COPY package.json package-lock.json ./
 RUN npm ci
@@ -6,7 +6,7 @@ COPY tsconfig.json tsconfig.build.json ./
 COPY src ./src
 RUN npm run build && npm prune --omit=dev
 
-FROM node:24.20.0-alpine3.24 AS runner
+FROM node:26.10.0-alpine3.24 AS runner
 WORKDIR /app
 ENV NODE_ENV=production \
     PORT=3000
