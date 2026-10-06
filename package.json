@@ -1,6 +1,6 @@
 {
-  "name": "perron",
-  "version": "0.1.0",
+  "name": "@ultimatelemon-eu/perron",
+  "version": "1.0.0",
   "description": "MCP server for Dutch Railways (NS) travel information: journey planning, live departures, disruptions, crowding and station facilities.",
   "license": "MIT",
   "private": true,
