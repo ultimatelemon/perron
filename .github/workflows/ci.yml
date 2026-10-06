@@ -1,0 +1,44 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+    tags: ['v*']
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  quality:
+    uses: ultimatelemon/shared-actions/.github/workflows/node-quality.yml@v1
+
+  publish:
+    needs: [quality]
+    if: github.event_name != 'pull_request'
+    uses: ultimatelemon/shared-actions/.github/workflows/docker-publish.yml@v1
+    permissions:
+      contents: read
+      packages: write
+    with:
+      image: ghcr.io/${{ github.repository }}
+
+  deploy:
+    needs: [publish]
+    # Forks and self-hosters have no webhook; skip instead of failing.
+    if: >-
+      github.event_name == 'push' && github.ref == 'refs/heads/main' &&
+      vars.DEPLOY_ENABLED == 'true'
+    uses: ultimatelemon/shared-actions/.github/workflows/dokploy-deploy.yml@v1
+    with:
+      environment: production
+      url: ${{ vars.DEPLOY_URL }}
+    secrets:
+      # A repository secret, not an environment secret: the calling job has no
+      # environment, so an environment secret would resolve to an empty string.
+      webhook-url: ${{ secrets.DOKPLOY_DEPLOY_URL }}
