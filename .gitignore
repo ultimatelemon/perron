@@ -12,3 +12,6 @@ coverage/
 
 # NS's OpenAPI specs; download them from https://apiportal.ns.nl (see README).
 /specs/
+
+# Timetable database and geocode cache (DATA_DIR).
+/data/

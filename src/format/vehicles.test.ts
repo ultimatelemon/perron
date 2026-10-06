@@ -44,7 +44,7 @@ describe('findNearby', () => {
       gosharing: 1,
       cykl: 1
     });
-    const distances = result.vehicles.map((v) => v.distanceM ?? 0);
+    const distances = result.vehicles.map((v) => v.distance_m ?? 0);
     expect(distances).toEqual([...distances].sort((a, b) => a - b));
     expect(result.closestOutsideRadius).toBeUndefined();
   });
@@ -75,7 +75,7 @@ describe('findNearby', () => {
       formFactors: ['bicycle']
     });
     expect(result.vehicles).toEqual([
-      expect.objectContaining({ operator: 'cykl', type: 'bicycle' })
+      expect.objectContaining({ operator: 'cykl', form_factor: 'bicycle' })
     ]);
   });
 

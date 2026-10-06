@@ -1,10 +1,9 @@
-import { createFetchClient, HttpError } from '@ultimatelemon-eu/fetch-client';
-import { UpstreamError } from '../errors.ts';
+import { createJsonClient } from '../lib/json.ts';
 import type { Logger } from '../lib/logger.ts';
 
 export const DEELMOBILITEIT_API = 'https://api.datadeelmobiliteit.nl';
 
-const SERVICE = 'Dashboard Deelmobiliteit';
+export const SERVICE = 'Dashboard Deelmobiliteit';
 
 /** One unrented vehicle in public space, as the open Available Vehicles API returns it. */
 export interface SharedVehicle {
@@ -106,7 +105,7 @@ export interface VehiclesClientOptions {
 export function createVehiclesClient(
   options: VehiclesClientOptions = {}
 ): () => Promise<VehiclesResponse> {
-  const client = createFetchClient({
+  const get = createJsonClient(SERVICE, {
     baseUrl: options.baseUrl ?? DEELMOBILITEIT_API,
     // The open API has no published limit; the snapshot cache keeps us at a few calls a minute.
     rateLimit: { limit: 30, windowMs: 60_000, burst: 5, maxWaitMs: 8000 },
@@ -117,20 +116,7 @@ export function createVehiclesClient(
     ...(options.fetch ? { fetch: options.fetch } : {})
   });
 
-  return async () => {
-    try {
-      return await client.get<VehiclesResponse>('/vehicles');
-    } catch (error) {
-      if (error instanceof HttpError) {
-        throw new UpstreamError(
-          error.status,
-          `${SERVICE} API ${String(error.status)}: ${error.message}`,
-          SERVICE
-        );
-      }
-      throw error;
-    }
-  };
+  return () => get<VehiclesResponse>('/vehicles');
 }
 
 export interface VehicleProviderOptions {

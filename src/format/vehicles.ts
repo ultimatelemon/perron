@@ -58,9 +58,9 @@ function toItem(
   const flags = snapshot.flags[i]!;
   return compact({
     operator: snapshot.operators[snapshot.operator[i]!],
-    type: snapshot.types[snapshot.type[i]!],
+    form_factor: snapshot.types[snapshot.type[i]!],
     propulsion: snapshot.propulsions[snapshot.propulsion[i]!],
-    distanceM: Math.round(distance),
+    distance_m: Math.round(distance),
     direction: direction(origin, at),
     lat: Math.round(at.lat * 1e6) / 1e6,
     lon: Math.round(at.lon * 1e6) / 1e6,

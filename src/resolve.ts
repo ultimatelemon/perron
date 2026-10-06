@@ -77,7 +77,11 @@ function allowedTypos(length: number): number {
   return 3;
 }
 
-function scoreName(query: string, name: string, synonym: boolean): number {
+export function scoreName(
+  query: string,
+  name: string,
+  synonym: boolean
+): number {
   if (!name) return 0;
   if (name === query) return synonym ? EXACT - 20 : EXACT;
   if (name.startsWith(query))

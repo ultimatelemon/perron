@@ -1,4 +1,7 @@
 import type { VehicleSnapshot } from './deelmobiliteit/client.ts';
+import type { ServiceArea } from './deelmobiliteit/serviceAreas.ts';
+import type { Geocoder } from './geo/geocode.ts';
+import type { OvService } from './ov/service.ts';
 import type { Cache } from './lib/cache.ts';
 import type { Logger } from './lib/logger.ts';
 import type { NsClient } from './ns/client.ts';
@@ -13,7 +16,8 @@ export const TTL = {
   ovfiets: 2 * MINUTE,
   lifts: 2 * MINUTE,
   disruptions: MINUTE,
-  live: 30_000
+  live: 30_000,
+  zones: 24 * 60 * MINUTE
 } as const;
 
 export interface Deps {
@@ -22,6 +26,12 @@ export interface Deps {
   stations: () => Promise<StationIndex>;
   /** Nationwide snapshot of unrented shared vehicles. */
   vehicles: () => Promise<VehicleSnapshot>;
+  geocoder: Geocoder;
+  serviceAreas: (
+    municipality: string,
+    operator: string
+  ) => Promise<ServiceArea[]>;
+  ov: OvService;
   now: () => Date;
   logger: Logger;
 }

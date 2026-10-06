@@ -15,6 +15,19 @@ const schema = z.object({
     .transform((value) => value || undefined)
     .pipe(z.url().optional()),
   VEHICLES_CACHE_SECONDS: z.coerce.number().int().min(15).max(600).default(60),
+  DATA_DIR: z.string().default('./data'),
+  OV_AGENCY: z.string().min(1).default('GVB'),
+  OV_LINES: z
+    .string()
+    .default('')
+    .transform((value) =>
+      value
+        .split(',')
+        .map((line) => line.trim())
+        .filter(Boolean)
+    ),
+  GTFS_URL: z.url().default('https://gtfs.ovapi.nl/nl/gtfs-nl.zip'),
+  GTFS_RT_URL: z.url().default('https://gtfs.ovapi.nl/nl/tripUpdates.pb'),
   LOG_LEVEL: z
     .enum(['fatal', 'error', 'warn', 'info', 'debug', 'trace', 'silent'])
     .default('info')

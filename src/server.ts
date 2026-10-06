@@ -1,4 +1,5 @@
 import { readFileSync } from 'node:fs';
+import { join } from 'node:path';
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { loadConfig } from './config.ts';
 import { createStationProvider, type Deps } from './context.ts';
@@ -8,7 +9,13 @@ import {
   createVehicleProvider,
   createVehiclesClient
 } from './deelmobiliteit/client.ts';
+import { createServiceAreaClient } from './deelmobiliteit/serviceAreas.ts';
+import { Geocoder } from './geo/geocode.ts';
+import { createNominatim } from './geo/nominatim.ts';
+import { createPdok } from './geo/pdok.ts';
+import { sqliteStore } from './lib/store.ts';
 import { createLogger } from './log.ts';
+import { OvService } from './ov/service.ts';
 import { createNsClient } from './ns/client.ts';
 import { registerTools } from './tools/index.ts';
 
@@ -23,7 +30,7 @@ const ICON = `data:image/svg+xml;base64,${readFileSync(
 ).toString('base64')}`;
 
 const INSTRUCTIONS =
-  'Dutch Railways (NS) travel information. Tools accept station names, NS codes or UIC codes. Times are Europe/Amsterdam, HH:mm, with the date only when it is not today. Prices are in euros. shared_vehicles finds shared scooters, bikes and cars (Check, Felyx, GO Sharing, …) near a station from the open Dashboard Deelmobiliteit feed. This is not an official NS service.';
+  'Dutch Railways (NS) travel information. Tools accept station names, NS codes or UIC codes. Times are Europe/Amsterdam, HH:mm, with the date only when it is not today. Prices are in euros. For the last mile: scooters_nearby and nearest_zone (shared scooters and where to park them) and ov_departures (GVB metro 52 and IJ ferries) take an address, station or place, and echo the coordinates they used. This is not an official NS service.';
 
 export function createPerronServer(deps: Deps, iconUrl?: string): McpServer {
   const server = new McpServer(
@@ -59,11 +66,34 @@ async function main() {
     minTtlMs: config.VEHICLES_CACHE_SECONDS * 1000,
     logger
   });
+  const store = sqliteStore(join(config.DATA_DIR, 'geocode.sqlite'));
+  const geocoder = new Geocoder({
+    pdok: createPdok({ logger }),
+    nominatim: createNominatim({
+      userAgent: `perron/${version} (+https://github.com/ultimatelemon/perron)`,
+      logger
+    }),
+    stations,
+    store,
+    logger
+  });
+  const ov = new OvService({
+    dataDir: config.DATA_DIR,
+    gtfsUrl: config.GTFS_URL,
+    realtimeUrl: config.GTFS_RT_URL,
+    agency: config.OV_AGENCY,
+    lines: config.OV_LINES,
+    logger
+  });
+  const stopOv = ov.start();
   const deps: Deps = {
     ns,
     cache,
     stations,
     vehicles,
+    geocoder,
+    serviceAreas: createServiceAreaClient({ logger }),
+    ov,
     now: () => new Date(),
     logger
   };
@@ -88,8 +118,12 @@ async function main() {
 
   const shutdown = (signal: string) => {
     logger.info({ signal }, 'shutting down');
+    stopOv();
     Promise.all([http.close(), cache.close()])
-      .then(() => process.exit(0))
+      .then(() => {
+        store.close();
+        process.exit(0);
+      })
       .catch(() => process.exit(1));
     setTimeout(() => process.exit(1), 10_000).unref();
   };

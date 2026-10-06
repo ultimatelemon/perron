@@ -20,7 +20,9 @@ const calls: [string, Record<string, unknown>][] = [
   ['arrivals', { station: 'Schiphol', limit: 5 }],
   ['disruptions', {}],
   ['station_facilities', { station: 'Utrecht' }],
-  ['shared_vehicles', { station: 'Rotterdam Centraal', operator: ['check'] }],
+  ['scooters_nearby', { locatie: 'station Rotterdam Centraal' }],
+  ['nearest_zone', { locatie: 'Damrak 1 Amsterdam' }],
+  ['ov_departures', { halte: 'Centraal Station', lijn: '52' }],
   ['plan_trip', { from: 'Ede', to: 'Zwolle' }]
 ];
 
