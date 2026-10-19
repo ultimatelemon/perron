@@ -16,11 +16,11 @@ jobs:
   # Runs here rather than in a separate workflow so the image is built from
   # exactly the commit that passed.
   quality:
-    uses: ultimatelemon/shared-actions/.github/workflows/node-quality.yml@v1
+    uses: ultimatelemon/shared-actions/.github/workflows/node-quality.yml@v2
 
   publish:
     needs: [quality]
-    uses: ultimatelemon/shared-actions/.github/workflows/docker-publish.yml@v1
+    uses: ultimatelemon/shared-actions/.github/workflows/docker-publish.yml@v2
     permissions:
       contents: read
       packages: write
@@ -30,7 +30,7 @@ jobs:
   deploy:
     needs: [publish]
     if: github.ref == 'refs/heads/main'
-    uses: ultimatelemon/shared-actions/.github/workflows/dokploy-deploy.yml@v1
+    uses: ultimatelemon/shared-actions/.github/workflows/dokploy-deploy.yml@v2
     with:
       environment: production
       url: ${{ vars.DEPLOY_URL }}
