@@ -45,19 +45,19 @@
   },
   "devDependencies": {
     "@types/geojson": "^7946.0.16",
-    "@types/node": "^24.19.1",
+    "@types/node": "^24.19.2",
     "@types/yauzl": "^3.4.0",
     "@types/yazl": "^3.3.1",
-    "@ultimatelemon-eu/eslint-config": "^1.1.0",
+    "@ultimatelemon-eu/eslint-config": "^1.1.1",
     "@ultimatelemon-eu/prettier-config": "^1.0.1",
-    "eslint": "^10.12.0",
+    "eslint": "^10.13.0",
     "eslint-config-prettier": "^10.1.8",
     "globals": "^17.13.0",
     "pino-pretty": "^13.2.0",
-    "prettier": "^3.9.9",
+    "prettier": "^3.9.10",
     "typescript": "~6.0.3",
-    "typescript-eslint": "^8.71.1",
-    "vitest": "^5.0.3",
+    "typescript-eslint": "^8.71.2",
+    "vitest": "^5.0.5",
     "yazl": "^3.3.1"
   }
 }
