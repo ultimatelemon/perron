@@ -30,7 +30,7 @@ jobs:
   deploy:
     needs: [publish]
     if: github.ref == 'refs/heads/main'
-    uses: ultimatelemon/shared-actions/.github/workflows/dokploy-deploy.yml@v1
+    uses: ultimatelemon/shared-actions/.github/workflows/dokploy-deploy.yml@v2
     with:
       environment: production
       url: ${{ vars.DEPLOY_URL }}
